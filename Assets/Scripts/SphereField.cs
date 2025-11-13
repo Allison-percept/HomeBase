@@ -15,6 +15,7 @@
  * V1.0 - based on the OSC software
  **/
 using UnityEngine;
+using UnityEditor;
 using System;
 
 public class SphereField {
@@ -357,6 +358,18 @@ public class SphereField {
                 continue;
             _blobs[i].Obj.SetActive(_blobs[i].IsIn[0] || _blobs[i].IsIn[2] || _blobs[i].IsIn[3]);
         }
+    }
+
+    /**
+     * Quit the application
+     **/
+    public void QuitPlaying()
+    {
+        #if UNITY_EDITOR
+        EditorApplication.isPlaying = false;
+        #else
+        Application.Quit();
+        #endif
     }
 
 

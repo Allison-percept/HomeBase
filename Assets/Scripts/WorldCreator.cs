@@ -48,6 +48,7 @@ public class WolrdCreator : MonoBehaviour
     private const float _velocity = 2.0f;           // speed along a straight edge m/sec
     private const float _spinV = 30.0f;             // abs rotational velocity deg/sec
     private const int NSPHERES = 12000;             // number of spheres 
+    private const int NSWAPS = 200;                 // how many attempts to swap elements of condition array
 
 
 
@@ -86,23 +87,75 @@ public class WolrdCreator : MonoBehaviour
 
     private float _targetDistance1, _targetDistance2, _turnAngle, _directionAngle, _directionDistance;
 
-    private const int NCONDS = 4; //12;
+    private const int NCONDS = 48;
     private int _cond = 0;
     private int _experiment = -1;
     
-    float[] c1 = new float[5] { 4.0f, 4.0f, 70.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c2 = new float[5] { 4.0f, 4.0f, 105.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c3 = new float[5] { 4.0f, 4.0f, 120.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c4 = new float[5] { 4.0f, 8.0f, 70.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c5 = new float[5] { 4.0f, 8.0f, 105.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c6 = new float[5] { 4.0f, 8.0f, 120.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c7 = new float[5] { 8.0f, 4.0f, 70.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c8 = new float[5] { 8.0f, 4.0f, 105.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c9 = new float[5] { 8.0f, 4.0f, 120.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c10 = new float[5] { 8.0f, 8.0f, 70.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c11 = new float[5] { 8.0f, 8.0f, 105.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[] c12 = new float[5] { 8.0f, 8.0f, 120.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
-    float[][] _conditions = new float[12][];
+    float[] c1  = new float[5] { 4.0f, 4.0f, 165.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c2  = new float[5] { 4.0f, 4.0f, 150.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c3  = new float[5] { 4.0f, 4.0f, 135.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c4  = new float[5] { 4.0f, 8.0f, 165.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c5  = new float[5] { 4.0f, 8.0f, 150.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c6  = new float[5] { 4.0f, 8.0f, 135.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c7  = new float[5] { 8.0f, 8.0f, 165.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c8  = new float[5] { 8.0f, 8.0f, 150.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c9  = new float[5] { 8.0f, 8.0f, 135.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c10 = new float[5] { 8.0f, 4.0f, 165.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c11 = new float[5] { 8.0f, 4.0f, 150.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c12 = new float[5] { 8.0f, 4.0f, 135.0f, 1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c13 = new float[5] { 4.0f, 4.0f, 165.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c14 = new float[5] { 4.0f, 4.0f, 150.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c15 = new float[5] { 4.0f, 4.0f, 135.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c16 = new float[5] { 4.0f, 8.0f, 165.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c17 = new float[5] { 4.0f, 8.0f, 150.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c18 = new float[5] { 4.0f, 8.0f, 135.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c19 = new float[5] { 8.0f, 8.0f, 165.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c20 = new float[5] { 8.0f, 8.0f, 150.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c21 = new float[5] { 8.0f, 8.0f, 135.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c22 = new float[5] { 8.0f, 4.0f, 165.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c23 = new float[5] { 8.0f, 4.0f, 150.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c24 = new float[5] { 8.0f, 4.0f, 135.0f, 1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c25 = new float[5] { 4.0f, 4.0f, 165.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c26 = new float[5] { 4.0f, 4.0f, 150.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c27 = new float[5] { 4.0f, 4.0f, 135.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c28 = new float[5] { 4.0f, 8.0f, 165.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c29 = new float[5] { 4.0f, 8.0f, 150.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c30 = new float[5] { 4.0f, 8.0f, 135.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c31 = new float[5] { 8.0f, 8.0f, 165.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c32 = new float[5] { 8.0f, 8.0f, 150.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c33 = new float[5] { 8.0f, 8.0f, 135.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c34 = new float[5] { 8.0f, 4.0f, 165.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c35 = new float[5] { 8.0f, 4.0f, 150.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c36 = new float[5] { 8.0f, 4.0f, 135.0f, -1.0f, 1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c37 = new float[5] { 4.0f, 4.0f, 165.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c38 = new float[5] { 4.0f, 4.0f, 150.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c39 = new float[5] { 4.0f, 4.0f, 135.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c40 = new float[5] { 4.0f, 8.0f, 165.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c41 = new float[5] { 4.0f, 8.0f, 150.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c42 = new float[5] { 4.0f, 8.0f, 135.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c43 = new float[5] { 8.0f, 8.0f, 165.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c44 = new float[5] { 8.0f, 8.0f, 150.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c45 = new float[5] { 8.0f, 8.0f, 135.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[] c46 = new float[5] { 8.0f, 4.0f, 165.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c47 = new float[5] { 8.0f, 4.0f, 150.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+    float[] c48 = new float[5] { 8.0f, 4.0f, 135.0f, -1.0f, -1.0f }; // l1, l2, theta, pan/tilt, dir1/dir2
+
+    float[][] _conditions = new float[NCONDS][];
     
     /**
      * All of the non-scene texture objects are initially active (so they are easy to find). 
@@ -140,18 +193,35 @@ public class WolrdCreator : MonoBehaviour
         _adjustTarget.transform.localScale = new Vector3(SphereField.HALLWAY_RADIUS, SphereField.HALLWAY_RADIUS, SphereField.HALLWAY_RADIUS);
 
         Debug.Log("In WordCreator");
-        _conditions[0] = c1;
-        _conditions[1] = c2;
-        _conditions[2] = c3;
-        _conditions[3] = c4;
-        _conditions[4] = c5;
-        _conditions[5] = c6;
-        _conditions[6] = c7;
-        _conditions[7] = c8;
-        _conditions[8] = c9;
-        _conditions[9] = c10;
-        _conditions[10] = c11;
-        _conditions[11] = c12;
+        _conditions[0] = c1; _conditions[1] = c2; _conditions[2] = c3;
+        _conditions[3] = c4; _conditions[4] = c5; _conditions[5] = c6; 
+        _conditions[6] = c7; _conditions[7] = c8; _conditions[8] = c9;
+        _conditions[9] = c10; _conditions[10] = c11; _conditions[11] = c12;
+
+        _conditions[12] = c13; _conditions[13] = c14; _conditions[14] = c15;
+        _conditions[15] = c16; _conditions[16] = c17; _conditions[17] = c18; 
+        _conditions[18] = c19; _conditions[19] = c20; _conditions[20] = c21;
+        _conditions[21] = c22; _conditions[22] = c23; _conditions[23] = c24;
+
+        _conditions[24] = c25; _conditions[25] = c26; _conditions[26] = c27;
+        _conditions[27] = c28; _conditions[28] = c29; _conditions[29] = c30; 
+        _conditions[30] = c31; _conditions[31] = c32; _conditions[32] = c33;
+        _conditions[33] = c34; _conditions[34] = c35; _conditions[35] = c36;
+
+        _conditions[36] = c37; _conditions[37] = c38; _conditions[38] = c39;
+        _conditions[39] = c40; _conditions[40] = c41; _conditions[41] = c42; 
+        _conditions[42] = c43; _conditions[43] = c44; _conditions[44] = c45;
+        _conditions[45] = c46; _conditions[46] = c47; _conditions[47] = c48;
+
+        for(int i = 0; i < NSWAPS; i++)
+        {
+            int index1 = UnityEngine.Random.Range(0, NCONDS);
+            int index2 = UnityEngine.Random.Range(0, NCONDS);
+            float[] z = _conditions[index1];
+            _conditions[index1] = _conditions[index2];
+            _conditions[index2] = z;
+        }
+
     }
 
     /**
