@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 /**
  * Create the basic experimental environment.
@@ -6,6 +7,7 @@ using UnityEngine;
  * Copyright Michael Jenkin 2025
  * Version History
  * 
+ * V1.3 - basically deal with everything except VR (and head tracking)
  * V1.2 - set up for new two task version
  * V1.1 - use a pointer for the final task rather than moving the point of view.
  *      - do some general cleanup in code style
@@ -78,9 +80,13 @@ public class WolrdCreator : MonoBehaviour
     private GameObject _dialog = null;
     private GameObject _home = null;
 
+    private ResponseLog _responseLog = null;
+    private string _outputHeader;
+    private long _startTime;
+
     private float _targetDistance1, _targetDistance2, _turnAngle, _directionAngle, _directionDistance;
 
-    private const int NCONDS = 12;
+    private const int NCONDS = 4; //12;
     private int _cond = 0;
     private int _experiment = -1;
     
@@ -128,6 +134,8 @@ public class WolrdCreator : MonoBehaviour
      **/
     void Start()
     {
+        _startTime = (long)(DateTime.Now - new DateTime(1970, 1, 1)).TotalMilliseconds;
+        
         GetGameObjects();
         _adjustTarget.transform.localScale = new Vector3(SphereField.HALLWAY_RADIUS, SphereField.HALLWAY_RADIUS, SphereField.HALLWAY_RADIUS);
 
@@ -144,7 +152,6 @@ public class WolrdCreator : MonoBehaviour
         _conditions[9] = c10;
         _conditions[10] = c11;
         _conditions[11] = c12;
-
     }
 
     /**
@@ -185,6 +192,14 @@ public class WolrdCreator : MonoBehaviour
                 {
                     if (confirm == 0)
                     {
+                        _responseLog = new ResponseLog();
+                        if(_experiment == 0)
+                        {
+                            _outputHeader = "HomeBase Adjust Target Dataset";
+                        } else
+                        {
+                            _outputHeader = "HomeBase Where Did I Go Dataset";
+                        }
                         _uiState = UIState.DoingExperiment;
                         _experimentState = ExperimentState.Initialize;
                         _dialog.SetActive(false);
@@ -470,22 +485,32 @@ public class WolrdCreator : MonoBehaviour
 
                 if (Input.GetKeyDown("x"))
                 {
+
                     _adjustTarget.SetActive(false);
                     _sf.DestroyGameObjects();
-                    if (_cond < NCONDS-1)
+                    if (_cond < NCONDS - 1)
                     {
+                        Debug.Log("Adding to response");
+                        _responseLog.Add(ResponseLog.ADJUST_TARGET, Time.time, _conditions[_cond][0], _conditions[_cond][1], _conditions[_cond][2],
+                                     _conditions[_cond][3], _conditions[_cond][4], _targetDistance1, _targetDistance2, _turnAngle, -1000.0f, -1000.0f);
                         _cond = _cond + 1;
                         _experimentState = ExperimentState.BeforeMotion;
-                    } else
+                    }
+                    else
                     {
+                        Debug.Log("Adding to response");
+                        _responseLog.Add(ResponseLog.ADJUST_TARGET, Time.time, _conditions[_cond][0], _conditions[_cond][1], _conditions[_cond][2],
+                                     _conditions[_cond][3], _conditions[_cond][4], _targetDistance1, _targetDistance2, _turnAngle, -1000.0f, -1000.0f);
+                        _responseLog.Dump(Application.persistentDataPath + "/Responses" + _startTime + ".txt", _outputHeader);
                         _camera.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
                         _camera.transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
                         _welcome.SetActive(true);
                         _experimentState = ExperimentState.Done;
+                        _uiState = UIState.ExperimentDone;
                     }
                 }
                 break;
-            case ExperimentState.Done:
+            case ExperimentState.Done: // should never get here
                 break;
         }
     }
@@ -722,20 +747,29 @@ public class WolrdCreator : MonoBehaviour
                 {
                     _adjustTarget.SetActive(false);
                     _sf.DestroyGameObjects();
-                    if (_cond < NCONDS-1)
+                    if (_cond < NCONDS - 1)
                     {
+                        Debug.Log("Adding to response");
+                        _responseLog.Add(ResponseLog.WHERE_DID_I_GO, Time.time, _conditions[_cond][0], _conditions[_cond][1], _conditions[_cond][2],
+                                     _conditions[_cond][3], _conditions[_cond][4], -1000.0f, -1000.0f, -1000.0f, _directionDistance, _directionAngle);
                         _cond = _cond + 1;
                         _experimentState = ExperimentState.BeforeMotion;
-                    } else
+                    }
+                    else
                     {
+                        Debug.Log("Adding to response");
+                        _responseLog.Add(ResponseLog.WHERE_DID_I_GO, Time.time, _conditions[_cond][0], _conditions[_cond][1], _conditions[_cond][2],
+                                     _conditions[_cond][3], _conditions[_cond][4], -1000.0f, -1000.0f, -1000.0f, _directionDistance, _directionAngle);
+                        _responseLog.Dump(Application.persistentDataPath + "/Responses" + _startTime + ".txt", _outputHeader);
                         _camera.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
                         _camera.transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
                         _welcome.SetActive(true);
                         _experimentState = ExperimentState.Done;
+                        _uiState = UIState.ExperimentDone;
                     }
                 }
                 break;
-            case ExperimentState.Done:
+            case ExperimentState.Done: // should never get here
                 break;
         }
 
